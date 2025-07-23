@@ -19,7 +19,7 @@ error() { echo -e "${RED}[HATA] $1${NC}"; exit 1; }
 CLUSTER_NAME="my-cluster"
 ARGOCD_NAMESPACE="argocd"
 DEV_NAMESPACE="dev"
-APP_CONFIG_PATH="p3/configs/application.yaml"
+APP_CONFIG_PATH="p3/confs/application.yaml"
 ARGO_APP_NAME="playground-app-argo"
 
 # --- Temizlik Fonksiyonu ---
@@ -114,4 +114,25 @@ fi
 
 echo ""
 success "TÜM KURULUM BAŞARIYLA TAMAMLANDI!"
+```
+
+### Ne Değişti?
+
+Hatalı olan kısım şuydu:
+`SYNC_STATUS=$(kubectl ... -o jsonpath='{.status.sync.status}')`
+Buradaki tek tırnaklar `while` döngüsü içinde Bash tarafından yanlış yorumlanabiliyor.
+
+Düzeltilmiş halinde, bu tırnak karmaşasını ortadan kaldırmak için `jsonpath` sorgusunu önce bir değişkene atıyoruz:
+`JSONPATH_SYNC='{.status.sync.status}'`
+
+Sonra bu değişkeni `kubectl` komutu içinde çift tırnakla kullanıyoruz:
+`SYNC_STATUS=$(kubectl ... -o jsonpath="${JSONPATH_SYNC}")`
+
+Bu yaklaşım, Bash'in tırnakları doğru bir şekilde işlemesini garanti altına alır ve `unexpected EOF` hatasını çözer.
+
+
+    ````bash
+    k3d cluster delete my-cluster --all
+    ````
+
 
