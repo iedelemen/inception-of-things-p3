@@ -19,7 +19,7 @@ error() { echo -e "${RED}[HATA] $1${NC}"; exit 1; }
 CLUSTER_NAME="my-cluster"
 ARGOCD_NAMESPACE="argocd"
 DEV_NAMESPACE="dev"
-APP_CONFIG_PATH="p3/confs/application.yaml" # ÖNEMLİ: Bu yolun doğru olduğundan emin olun!
+APP_CONFIG_PATH="p3/configs/application.yaml" # ÖNEMLİ: Bu yolun doğru olduğundan emin olun!
 
 # --- Ana Script ---
 info "Kurulum süreci başlıyor..."
@@ -83,20 +83,6 @@ echo ""
 success "TÜM KURULUM BAŞARIYLA TAMAMLANDI!"
 
 ```
-
-### Script Nasıl Çalıştırılır?
-
-1.  Yukarıdaki kodu `setup.sh` adında bir dosyaya kaydedin.
-2.  Dosyaya çalıştırma izni verin:
-    ````bash
-    chmod +x setup.sh
-    ````
-3.  Script'i çalıştırın:
-    ````bash
-    ./setup.sh
-    ````
-
----
 
 ### Script'in Teknik Detayları ve Kontrol Mekanizmaları
 
