@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playground-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: playground
+  template:
+    metadata:
+      labels:
+        app: playground
+    spec:
+      containers:
+      - name: playground-container
+        image: wil42/playground:v1  # v1 versiyonunu kullanıyoruz
+        ports:
+        - containerPort: 8888
