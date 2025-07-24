@@ -17,3 +17,7 @@ kubectl apply -f p3/configs/application.yaml -n argocd
 	kubectl get deployment,service -n dev
 
 curl http://localhost:8888
+
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+kubectl port-forward svc/argocd-server -n argocd 8080:443
