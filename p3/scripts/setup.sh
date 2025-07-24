@@ -19,7 +19,9 @@ error() { echo -e "${RED}[HATA] $1${NC}"; exit 1; }
 CLUSTER_NAME="my-cluster"
 ARGOCD_NAMESPACE="argocd"
 DEV_NAMESPACE="dev"
+# Script ile aynı dizinde bulunan application.yaml dosyasını kullanacak şekilde ayarlandı.
 APP_CONFIG_PATH="p3/configs/application.yaml"
+# application.yaml içindeki metadata.name ile eşleşecek şekilde güncellendi.
 ARGO_APP_NAME="playground-app-argo"
 
 # --- Temizlik Fonksiyonu ---
@@ -40,7 +42,8 @@ info "Kurulum süreci başlıyor..."
 
 # 1. K3d Cluster'ını Oluştur
 info "1. K3d cluster'ı oluşturuluyor: ${CLUSTER_NAME}"
-if ! k3d cluster create ${CLUSTER_NAME} --port "8888:30080"; then
+# Service manifestindeki nodePort: 30080'i host'taki 8888 portuna yönlendirir.
+if ! k3d cluster create ${CLUSTER_NAME} --port "8888:30080@loadbalancer"; then
     error "K3d cluster oluşturulamadı. Docker'ın çalıştığından ve k3d'nin kurulu olduğundan emin olun."
 fi
 success "K3d cluster'ı başarıyla oluşturuldu."
@@ -49,8 +52,8 @@ kubectl cluster-info
 
 # 2. Namespace'leri Oluştur
 info "2. Namespace'ler oluşturuluyor: ${ARGOCD_NAMESPACE} ve ${DEV_NAMESPACE}"
-kubectl create namespace ${ARGOCD_NAMESPACE}
-kubectl create namespace ${DEV_NAMESPACE}
+kubectl create namespace ${ARGOCD_NAMESPACE} || true # Zaten varsa hata verme
+kubectl create namespace ${DEV_NAMESPACE} || true   # Zaten varsa hata verme
 success "Namespace'ler başarıyla oluşturuldu."
 
 # 3. Argo CD'yi Kur ve Hazır Olmasını Bekle
@@ -71,18 +74,16 @@ fi
 kubectl apply -f ${APP_CONFIG_PATH} -n ${ARGOCD_NAMESPACE}
 success "Argo CD Application nesnesi oluşturuldu: ${ARGO_APP_NAME}"
 
-# 5. AKILLI BEKLEME ADIMI (Düzeltilmiş Hali)
+# 5. AKILLI BEKLEME ADIMI
 info "5. Argo CD'nin uygulamayı senkronize etmesi bekleniyor..."
-TIMEOUT=180 # 3 dakika bekleme süresi
-INTERVAL=5  # Her 5 saniyede bir kontrol et
+TIMEOUT=300 # 5 dakika bekleme süresi
+INTERVAL=10  # Her 10 saniyede bir kontrol et
 ELAPSED=0
 
 while true; do
-    # JSONPath sorgularını değişkenlere atayarak tırnak sorununu çözüyoruz.
     JSONPATH_SYNC='{.status.sync.status}'
     JSONPATH_HEALTH='{.status.health.status}'
 
-    # kubectl komutunu çalıştırırken değişkenleri kullanıyoruz.
     SYNC_STATUS=$(kubectl get application ${ARGO_APP_NAME} -n ${ARGOCD_NAMESPACE} -o jsonpath="${JSONPATH_SYNC}" 2>/dev/null || echo "NotFound")
     HEALTH_STATUS=$(kubectl get application ${ARGO_APP_NAME} -n ${ARGOCD_NAMESPACE} -o jsonpath="${JSONPATH_HEALTH}" 2>/dev/null || echo "NotFound")
 
@@ -92,7 +93,7 @@ while true; do
     fi
 
     if [[ ${ELAPSED} -ge ${TIMEOUT} ]]; then
-        error "Zaman aşımı! Argo CD uygulaması 3 dakika içinde senkronize olamadı. Durum: Sync=${SYNC_STATUS}, Health=${HEALTH_STATUS}"
+        error "Zaman aşımı! Argo CD uygulaması 5 dakika içinde senkronize olamadı. Durum: Sync=${SYNC_STATUS}, Health=${HEALTH_STATUS}"
     fi
 
     echo -e "   - Bekleniyor... (Mevcut Durum: Sync=${SYNC_STATUS}, Health=${HEALTH_STATUS})"
@@ -102,9 +103,10 @@ done
 
 # 6. Son Durum Kontrolü ve Test
 info "6. Son durum kontrol ediliyor..."
-kubectl get pods -n ${DEV_NAMESPACE}
+kubectl get pods,svc -n ${DEV_NAMESPACE}
 
 info "Uygulamaya erişim test ediliyor (http://localhost:8888)..."
+# Curl komutu, k3d port yönlendirmesi sayesinde çalışır.
 RESPONSE=$(curl --fail --silent --show-error http://localhost:8888)
 if [ $? -eq 0 ]; then
     success "Uygulamadan gelen yanıt: ${RESPONSE}"
@@ -114,4 +116,3 @@ fi
 
 echo ""
 success "TÜM KURULUM BAŞARIYLA TAMAMLANDI!"
-
