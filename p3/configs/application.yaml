@@ -2,16 +2,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: playground-app-argo
-  namespace: argocd # Bu manifest Argo CD'nin kendi namespace'ine kurulacak
+  namespace: argocd 
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/iedelemen/inception-of-things-p3.git' # KENDİ REPO ADRESİNİZ
+    repoURL: 'https://github.com/TufanKurukaya/tkurukay.git'
     targetRevision: HEAD
-    path: p3/configs # Deponun içindeki bu klasörü izle
+    path: conf
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: dev # Uygulamayı 'dev' namespace'ine kur
+    namespace: dev
   syncPolicy:
     automated:
       prune: true
