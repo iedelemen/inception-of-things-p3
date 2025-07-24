@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: playground-container
-        image: tufankurukaya/iot-app:v2 # v2 versiyonunu kullanıyoruz
+        image: tufankurukaya/iot-app:v1 # v2 versiyonunu kullanıyoruz
         ports:
         - containerPort: 8888
