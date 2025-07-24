@@ -114,5 +114,8 @@ else
     error "Uygulamaya erişilemedi. Servis veya port yönlendirme hatası olabilir."
 fi
 
-echo ""
+info "ArgoCD Arayüzü için: 'kubectl port-forward svc/argocd-server -n ${ARGOCD_NAMESPACE} 8080:443' komutunu yeni bir terminalde çalıştırın"
+info "Tarayıcınızda https://localhost:8080 adresine giderek ArgoCD arayüzüne erişebilirsiniz"
+info "Kullanıcı adı: admin"
+info "Argo CD Admin Şifresi: $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)"
 success "TÜM KURULUM BAŞARIYLA TAMAMLANDI!"
